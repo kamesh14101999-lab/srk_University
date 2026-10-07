@@ -16,7 +16,7 @@ const {
   Setting,
 } = require('../models');
 const asyncHandler = require('../middleware/asyncHandler');
-const { computePercent } = require('../services/attendanceStats');
+const { computePercent, computePercentForStudents } = require('../services/attendanceStats');
 const { getTeacherAssignments, getTeacherStudentIds } = require('../services/scope');
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -50,11 +50,13 @@ const admin = asyncHandler(async (req, res) => {
 
   const threshold = (await Setting.findOne({ key: 'attendanceThreshold' }))?.value ?? 75;
   const students = await Student.find({ academicStatus: 'active' }).select('_id');
+  const percentMap = await computePercentForStudents(students.map((s) => s._id));
+
   let greenCount = 0;
   let amberCount = 0;
   let redCount = 0;
-  for (const s of students.slice(0, 300)) {
-    const { percent } = await computePercent({ student: s._id });
+  for (const s of students) {
+    const percent = percentMap.get(s._id.toString())?.percent ?? 0;
     if (percent >= threshold) greenCount += 1;
     else if (percent >= threshold - 10) amberCount += 1;
     else redCount += 1;
@@ -103,21 +105,32 @@ const teacher = asyncHandler(async (req, res) => {
 
   const studentIds = await getTeacherStudentIds(teacherId);
   const threshold = (await Setting.findOne({ key: 'attendanceThreshold' }))?.value ?? 75;
+  const percentMap = await computePercentForStudents(studentIds);
+  const lowAttendanceStudents = await Student.find({ _id: { $in: studentIds } })
+    .select('studentId user')
+    .populate('user', 'name');
+
   const lowAttendance = [];
-  for (const sid of studentIds.slice(0, 200)) {
-    const { percent } = await computePercent({ student: sid });
-    if (percent < threshold) lowAttendance.push({ student: sid, percent });
+  for (const s of lowAttendanceStudents) {
+    const percent = percentMap.get(s._id.toString())?.percent ?? 0;
+    if (percent < threshold) {
+      lowAttendance.push({ student: s._id, studentId: s.studentId, name: s.user?.name, percent });
+    }
   }
 
   const subjectIds = assignments.map((a) => a.subject);
   const exams = await Exam.find({ subject: { $in: subjectIds }, isPublished: false }).select(
     'name subject maxMarks'
   );
-  const pendingMarkEntry = [];
-  for (const exam of exams) {
-    const markCount = await Mark.countDocuments({ exam: exam._id });
-    pendingMarkEntry.push({ exam, marksEntered: markCount });
-  }
+  const markCounts = await Mark.aggregate([
+    { $match: { exam: { $in: exams.map((e) => e._id) } } },
+    { $group: { _id: '$exam', count: { $sum: 1 } } },
+  ]);
+  const markCountMap = new Map(markCounts.map((m) => [m._id.toString(), m.count]));
+  const pendingMarkEntry = exams.map((exam) => ({
+    exam,
+    marksEntered: markCountMap.get(exam._id.toString()) ?? 0,
+  }));
 
   res.json({
     classes: populatedAssignments,

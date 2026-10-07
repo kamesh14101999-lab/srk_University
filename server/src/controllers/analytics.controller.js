@@ -1,6 +1,6 @@
 const { Student, Result, Exam, Mark } = require('../models');
 const asyncHandler = require('../middleware/asyncHandler');
-const { computePercent } = require('../services/attendanceStats');
+const { computePercent, computePercentForStudents } = require('../services/attendanceStats');
 const { getTeacherAssignments } = require('../services/scope');
 
 function round2(n) {
@@ -56,9 +56,10 @@ const admin = asyncHandler(async (req, res) => {
     }
   }
   const activeStudents = await Student.find({ academicStatus: 'active' }).select('_id studentId').limit(300);
+  const percentMap = await computePercentForStudents(activeStudents.map((s) => s._id));
   const attendanceVsPerformance = [];
   for (const s of activeStudents) {
-    const { percent } = await computePercent({ student: s._id });
+    const percent = percentMap.get(s._id.toString())?.percent ?? 0;
     const result = results.find((r) => r.student?._id?.toString() === s._id.toString());
     if (percent < 65) {
       studentsNeedingAttention.push({ student: s, percentage: percent, reason: 'low_attendance' });
@@ -92,34 +93,76 @@ const admin = asyncHandler(async (req, res) => {
 
 const teacherAnalytics = asyncHandler(async (req, res) => {
   const assignments = await getTeacherAssignments(req.teacherProfile._id);
+  if (assignments.length === 0) return res.json([]);
+
+  // Batch-fetch every exam for every assignment, and the per-exam average/count, in two queries
+  // total instead of two queries per exam.
+  const subjectIds = assignments.map((a) => a.subject);
+  const allExams = await Exam.find({ subject: { $in: subjectIds } }).sort({ date: 1 });
+  const markStats = await Mark.aggregate([
+    { $match: { exam: { $in: allExams.map((e) => e._id) } } },
+    { $group: { _id: '$exam', avg: { $avg: { $cond: ['$isAbsent', 0, '$obtained'] } } } },
+  ]);
+  const markStatsByExam = new Map(markStats.map((m) => [m._id.toString(), m.avg]));
+
+  // Batch-fetch every student across every assignment's (course, semester, section) in one query.
+  const allStudents = await Student.find({
+    $or: assignments.map((a) => ({ course: a.course, semester: a.semester, section: a.section })),
+  })
+    .select('studentId user course semester section')
+    .populate('user', 'name');
+
+  // Batch-fetch marks for each assignment's latest exam in one query, keyed by exam id.
+  const latestExamByAssignment = new Map();
+  for (const assignment of assignments) {
+    const exams = allExams.filter(
+      (e) =>
+        e.subject.toString() === assignment.subject.toString() &&
+        e.course.toString() === assignment.course.toString() &&
+        e.semester === assignment.semester
+    );
+    if (exams.length > 0) latestExamByAssignment.set(assignment._id.toString(), exams[exams.length - 1]);
+  }
+  const latestExamIds = Array.from(latestExamByAssignment.values()).map((e) => e._id);
+  const latestExamMarks = await Mark.find({ exam: { $in: latestExamIds } }).populate({
+    path: 'student',
+    select: 'studentId user',
+    populate: { path: 'user', select: 'name' },
+  });
+  const marksByExam = new Map();
+  for (const mark of latestExamMarks) {
+    const key = mark.exam.toString();
+    if (!marksByExam.has(key)) marksByExam.set(key, []);
+    marksByExam.get(key).push(mark);
+  }
+
   const report = [];
 
   for (const assignment of assignments) {
-    const exams = await Exam.find({ subject: assignment.subject, course: assignment.course, semester: assignment.semester });
-    const students = await Student.find({
-      course: assignment.course,
-      semester: assignment.semester,
-      section: assignment.section,
-    }).select('studentId user').populate('user', 'name');
+    const exams = allExams.filter(
+      (e) =>
+        e.subject.toString() === assignment.subject.toString() &&
+        e.course.toString() === assignment.course.toString() &&
+        e.semester === assignment.semester
+    );
+    const students = allStudents.filter(
+      (s) =>
+        s.course.toString() === assignment.course.toString() &&
+        s.semester === assignment.semester &&
+        s.section === assignment.section
+    );
 
-    const examTrend = [];
-    for (const exam of exams) {
-      const marks = await Mark.find({ exam: exam._id });
-      const avg = marks.length
-        ? round2(marks.reduce((sum, m) => sum + (m.isAbsent ? 0 : m.obtained), 0) / marks.length)
-        : 0;
-      examTrend.push({ exam: exam.name, average: avg, maxMarks: exam.maxMarks });
-    }
+    const examTrend = exams.map((exam) => ({
+      exam: exam.name,
+      average: round2(markStatsByExam.get(exam._id.toString()) ?? 0),
+      maxMarks: exam.maxMarks,
+    }));
 
-    const latestExam = exams[exams.length - 1];
+    const latestExam = latestExamByAssignment.get(assignment._id.toString());
     let topPerformers = [];
     let lowScorers = [];
     if (latestExam) {
-      const marks = await Mark.find({ exam: latestExam._id }).populate({
-        path: 'student',
-        select: 'studentId user',
-        populate: { path: 'user', select: 'name' },
-      });
+      const marks = marksByExam.get(latestExam._id.toString()) || [];
       const sorted = [...marks].sort((a, b) => b.obtained - a.obtained);
       topPerformers = sorted.slice(0, 5);
       lowScorers = sorted.slice(-5).reverse();

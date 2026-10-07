@@ -1,7 +1,7 @@
 const { Attendance, Student, TeachingAssignment, Setting } = require('../models');
 const asyncHandler = require('../middleware/asyncHandler');
 const ApiError = require('../utils/ApiError');
-const { computePercent, round1 } = require('../services/attendanceStats');
+const { computePercent, computePercentForStudents, round1 } = require('../services/attendanceStats');
 
 async function loadAssignmentForTeacher(assignmentId, req) {
   const assignment = await TeachingAssignment.findById(assignmentId);
@@ -154,12 +154,13 @@ const analytics = asyncHandler(async (req, res) => {
   if (req.query.section) filter.section = req.query.section;
 
   const students = await Student.find(filter).populate('user', 'name').populate('department', 'name');
+  const percentMap = await computePercentForStudents(students.map((s) => s._id));
 
   const belowThreshold = [];
   const byDepartment = new Map();
 
   for (const s of students) {
-    const { percent } = await computePercent({ student: s._id });
+    const percent = percentMap.get(s._id.toString())?.percent ?? 0;
     const deptName = s.department?.name || 'Unknown';
     if (!byDepartment.has(deptName)) byDepartment.set(deptName, { sum: 0, count: 0 });
     const d = byDepartment.get(deptName);

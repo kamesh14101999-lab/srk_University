@@ -68,7 +68,9 @@ export default function TeacherDashboard() {
             <ul className="mt-3 space-y-2 text-sm">
               {lowAttendance.map((s, i) => (
                 <li key={i} className="flex justify-between">
-                  <span>Student</span>
+                  <span>
+                    {s.name} <span className="text-gray-400">({s.studentId})</span>
+                  </span>
                   <Badge variant="red">{s.percent}%</Badge>
                 </li>
               ))}

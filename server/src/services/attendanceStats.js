@@ -32,4 +32,32 @@ function indicator(percent, threshold, warning) {
   return 'red';
 }
 
-module.exports = { computePercent, indicator, round1 };
+// Attendance % for many students in a single aggregation query, instead of one query per
+// student. Returns a Map keyed by student id (string) -> { present, total, percent }.
+// Students with zero attendance records are NOT included in the map — treat a missing key as 0%.
+async function computePercentForStudents(studentIds) {
+  if (!studentIds || studentIds.length === 0) return new Map();
+
+  const rows = await Attendance.aggregate([
+    { $match: { student: { $in: studentIds } } },
+    {
+      $group: {
+        _id: '$student',
+        total: { $sum: 1 },
+        present: { $sum: { $cond: [{ $eq: ['$status', 'present'] }, 1, 0] } },
+      },
+    },
+  ]);
+
+  const map = new Map();
+  for (const row of rows) {
+    map.set(row._id.toString(), {
+      present: row.present,
+      total: row.total,
+      percent: row.total > 0 ? round1((row.present / row.total) * 100) : 0,
+    });
+  }
+  return map;
+}
+
+module.exports = { computePercent, computePercentForStudents, indicator, round1 };
