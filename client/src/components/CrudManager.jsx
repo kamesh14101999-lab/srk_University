@@ -67,7 +67,14 @@ export default function CrudManager({
   function openEdit(row) {
     const initial = {};
     formFields.forEach((f) => {
-      const value = f.path ? f.path.split('.').reduce((o, k) => o?.[k], row) : row[f.name];
+      let value = f.path ? f.path.split('.').reduce((o, k) => o?.[k], row) : row[f.name];
+      if (value && typeof value === 'object') {
+        // Populated relation (e.g. department: { _id, name }) — the form needs just the id.
+        value = value._id ?? '';
+      } else if (f.type === 'date' && value) {
+        // Native date inputs need yyyy-MM-dd; the API returns a full ISO datetime string.
+        value = String(value).slice(0, 10);
+      }
       initial[f.name] = value ?? (f.type === 'checkbox' ? false : '');
     });
     setFormValues(initial);

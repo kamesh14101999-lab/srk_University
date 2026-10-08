@@ -25,8 +25,8 @@ export default function AdminTeachers() {
   ];
 
   const formFields = [
-    { name: 'name', label: 'Full Name', required: true },
-    { name: 'email', label: 'Email', required: true },
+    { name: 'name', label: 'Full Name', required: true, path: 'user.name' },
+    { name: 'email', label: 'Email', required: true, path: 'user.email' },
     { name: 'employeeId', label: 'Employee ID', required: true },
     { name: 'phone', label: 'Phone' },
     { name: 'department', label: 'Department', type: 'select', required: true, options: departmentOptions },

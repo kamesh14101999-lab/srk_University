@@ -30,8 +30,8 @@ export default function AdminStudents() {
   ];
 
   const formFields = [
-    { name: 'name', label: 'Full Name', required: true },
-    { name: 'email', label: 'Email', required: true },
+    { name: 'name', label: 'Full Name', required: true, path: 'user.name' },
+    { name: 'email', label: 'Email', required: true, path: 'user.email' },
     { name: 'studentId', label: 'Student ID', required: true },
     { name: 'rollNumber', label: 'Roll Number', required: true },
     { name: 'dob', label: 'Date of Birth', type: 'date', required: true },
