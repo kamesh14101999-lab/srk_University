@@ -2,6 +2,7 @@ const { Teacher, User, TeachingAssignment, TimetableEntry } = require('../models
 const asyncHandler = require('../middleware/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const { getPagination } = require('../utils/crudFactory');
+const generateTempPassword = require('../utils/generatePassword');
 
 const populateFields = [
   { path: 'user', select: 'name email isActive lastLoginAt' },
@@ -124,6 +125,25 @@ const remove = asyncHandler(async (req, res) => {
   res.json({ message: 'Deleted' });
 });
 
+const resetPassword = asyncHandler(async (req, res) => {
+  const teacher = await Teacher.findById(req.params.id);
+  if (!teacher) throw ApiError.notFound('Teacher not found');
+
+  const { newPassword } = req.body;
+  if (newPassword && newPassword.length < 8) {
+    throw ApiError.badRequest('newPassword must be at least 8 characters');
+  }
+
+  const user = await User.findById(teacher.user);
+  if (!user) throw ApiError.notFound('Linked user account not found');
+
+  const password = newPassword || generateTempPassword();
+  user.password = password;
+  await user.save();
+
+  res.json({ message: 'Password reset', temporaryPassword: password });
+});
+
 const workload = asyncHandler(async (req, res) => {
   const teacher = await Teacher.findById(req.params.id);
   if (!teacher) throw ApiError.notFound('Teacher not found');
@@ -152,4 +172,4 @@ const workload = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { list, getOne, create, update, remove, workload };
+module.exports = { list, getOne, create, update, remove, resetPassword, workload };

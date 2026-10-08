@@ -8,4 +8,6 @@ export const studentsApi = {
   marks: (id) => client.get(`/students/${id}/marks`).then((r) => r.data),
   results: (id) => client.get(`/students/${id}/results`).then((r) => r.data),
   activities: (id) => client.get(`/students/${id}/activities`).then((r) => r.data),
+  resetPassword: (id, newPassword) =>
+    client.post(`/students/${id}/reset-password`, newPassword ? { newPassword } : {}).then((r) => r.data),
 };

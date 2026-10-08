@@ -17,6 +17,7 @@ const ApiError = require('../utils/ApiError');
 const { getPagination } = require('../utils/crudFactory');
 const { teacherCanAccessStudent } = require('../services/scope');
 const { computePercent } = require('../services/attendanceStats');
+const generateTempPassword = require('../utils/generatePassword');
 
 const populateFields = [
   { path: 'user', select: 'name email isActive lastLoginAt' },
@@ -208,6 +209,25 @@ const addRemark = asyncHandler(async (req, res) => {
   res.status(201).json(student);
 });
 
+const resetPassword = asyncHandler(async (req, res) => {
+  const student = await Student.findById(req.params.id);
+  if (!student) throw ApiError.notFound('Student not found');
+
+  const { newPassword } = req.body;
+  if (newPassword && newPassword.length < 8) {
+    throw ApiError.badRequest('newPassword must be at least 8 characters');
+  }
+
+  const user = await User.findById(student.user);
+  if (!user) throw ApiError.notFound('Linked user account not found');
+
+  const password = newPassword || generateTempPassword();
+  user.password = password;
+  await user.save();
+
+  res.json({ message: 'Password reset', temporaryPassword: password });
+});
+
 const getAttendance = asyncHandler(async (req, res) => {
   const student = await Student.findById(req.params.id);
   if (!student) throw ApiError.notFound('Student not found');
@@ -299,6 +319,7 @@ module.exports = {
   create,
   update,
   remove,
+  resetPassword,
   addRemark,
   getAttendance,
   getMarks,

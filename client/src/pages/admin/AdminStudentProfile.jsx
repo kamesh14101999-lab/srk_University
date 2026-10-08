@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { studentsApi } from '../../api/students';
 import Loader from '../../components/Loader';
 import Badge from '../../components/Badge';
+import ResetPasswordButton from '../../components/ResetPasswordButton';
 import { formatDate } from '../../utils/formatters';
 import { GRADE_COLOR_CLASSES } from '../../utils/constants';
 
@@ -47,9 +48,10 @@ export default function AdminStudentProfile() {
             {student.studentId} · {student.department?.name} · {student.course?.name}
           </p>
         </div>
-        <Badge variant={student.academicStatus === 'active' ? 'green' : 'default'} className="ml-auto">
-          {student.academicStatus}
-        </Badge>
+        <div className="ml-auto flex items-center gap-3">
+          <Badge variant={student.academicStatus === 'active' ? 'green' : 'default'}>{student.academicStatus}</Badge>
+          <ResetPasswordButton onReset={() => studentsApi.resetPassword(id)} />
+        </div>
       </div>
 
       <div className="flex gap-2 overflow-x-auto rounded-md bg-gray-100 p-1">

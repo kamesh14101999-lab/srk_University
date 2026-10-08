@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { teachersApi } from '../../api/teachers';
 import Loader from '../../components/Loader';
 import Badge from '../../components/Badge';
+import ResetPasswordButton from '../../components/ResetPasswordButton';
 
 export default function AdminTeacherProfile() {
   const { id } = useParams();
@@ -33,9 +34,10 @@ export default function AdminTeacherProfile() {
             {teacher.employeeId} · {teacher.department?.name} · {teacher.designation}
           </p>
         </div>
-        <Badge variant={teacher.status === 'active' ? 'green' : 'default'} className="ml-auto">
-          {teacher.status}
-        </Badge>
+        <div className="ml-auto flex items-center gap-3">
+          <Badge variant={teacher.status === 'active' ? 'green' : 'default'}>{teacher.status}</Badge>
+          <ResetPasswordButton onReset={() => teachersApi.resetPassword(id)} />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

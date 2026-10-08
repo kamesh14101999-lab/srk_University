@@ -11,5 +11,6 @@ router.get('/:id', controller.getOne);
 router.post('/', authorize('admin'), controller.create);
 router.patch('/:id', authorize('admin'), controller.update);
 router.delete('/:id', authorize('admin'), controller.remove);
+router.post('/:id/reset-password', authorize('admin'), controller.resetPassword);
 
 module.exports = router;
