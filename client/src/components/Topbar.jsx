@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { notificationsApi } from '../api/notifications';
 import { initials } from '../utils/formatters';
+import ChangePasswordModal from './ChangePasswordModal';
 
 export default function Topbar({ onMenuClick }) {
   const { user, logout } = useAuth();
@@ -11,6 +12,7 @@ export default function Topbar({ onMenuClick }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const notifRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -102,12 +104,24 @@ export default function Topbar({ onMenuClick }) {
               <p className="text-sm font-medium text-gray-800">{user?.name}</p>
               <p className="text-xs capitalize text-gray-500">{user?.role}</p>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                setChangePasswordOpen(true);
+              }}
+              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+            >
+              Change Password
+            </button>
             <button type="button" onClick={handleLogout} className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
               Log out
             </button>
           </div>
         )}
       </div>
+
+      <ChangePasswordModal open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
     </header>
   );
 }
