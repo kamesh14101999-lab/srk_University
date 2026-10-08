@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Modal from './Modal';
-import FormField, { inputClass } from './FormField';
+import FormField from './FormField';
+import PasswordInput from './PasswordInput';
 import { authApi } from '../api/auth';
 import { useToast } from '../context/ToastContext';
 import { getErrorMessage } from '../utils/errors';
@@ -73,33 +74,13 @@ export default function ChangePasswordModal({ open, onClose }) {
           own new password.
         </p>
         <FormField label="Current Password" required>
-          <input
-            type="password"
-            required
-            className={inputClass}
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-          />
+          <PasswordInput required value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
         </FormField>
         <FormField label="New Password" required>
-          <input
-            type="password"
-            required
-            minLength={8}
-            className={inputClass}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
+          <PasswordInput required minLength={8} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
         </FormField>
         <FormField label="Confirm New Password" required>
-          <input
-            type="password"
-            required
-            minLength={8}
-            className={inputClass}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
+          <PasswordInput required minLength={8} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
         </FormField>
       </form>
     </Modal>

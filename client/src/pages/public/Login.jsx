@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { getErrorMessage } from '../../utils/errors';
 import { inputClass } from '../../components/FormField';
+import PasswordInput from '../../components/PasswordInput';
 
 const TABS = [
   { role: 'student', label: 'Student' },
@@ -107,13 +108,7 @@ export default function Login() {
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Password</label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={inputClass}
-                />
+                <PasswordInput required value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
 
               <div className="flex items-center justify-between text-sm">
