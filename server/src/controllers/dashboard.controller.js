@@ -142,6 +142,10 @@ const teacher = asyncHandler(async (req, res) => {
 
 const student = asyncHandler(async (req, res) => {
   const sp = req.studentProfile;
+  const profile = await Student.findById(sp._id)
+    .populate('user', 'name email')
+    .populate('department', 'name code')
+    .populate('course', 'name code');
   const attendance = await computePercent({ student: sp._id });
 
   const latestResult = await Result.findOne({ student: sp._id, isPublished: true }).sort({
@@ -183,7 +187,7 @@ const student = asyncHandler(async (req, res) => {
     .limit(10);
 
   res.json({
-    profile: sp,
+    profile,
     attendance,
     latestResult,
     todayTimetable,

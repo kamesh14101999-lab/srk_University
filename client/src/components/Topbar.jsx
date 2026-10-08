@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { notificationsApi } from '../api/notifications';
@@ -11,6 +11,17 @@ export default function Topbar({ onMenuClick }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const notifRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     notificationsApi
@@ -41,7 +52,7 @@ export default function Topbar({ onMenuClick }) {
 
       <div className="flex-1" />
 
-      <div className="relative">
+      <div className="relative" ref={notifRef}>
         <button
           type="button"
           onClick={() => setNotifOpen((o) => !o)}
@@ -79,7 +90,7 @@ export default function Topbar({ onMenuClick }) {
         )}
       </div>
 
-      <div className="relative">
+      <div className="relative" ref={menuRef}>
         <button type="button" onClick={() => setMenuOpen((o) => !o)} className="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-sm font-semibold text-white">
             {initials(user?.name)}
