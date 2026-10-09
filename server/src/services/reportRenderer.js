@@ -15,7 +15,11 @@ async function renderExcel({ title, columns, rows }) {
 }
 
 // Proportions each column by the longest value it actually holds (header included),
-// clamped so one very long value can't starve the rest of the table.
+// clamped so one very long value can't starve the rest of the table. A hard floor
+// (MIN_COL_WIDTH) keeps short columns (e.g. "Year") from being squeezed so thin that
+// pdfkit's single-line ellipsis truncation has no room to work and visibly breaks.
+const MIN_COL_WIDTH = 40;
+
 function computeColumnWidths(columns, rows, totalWidth) {
   const lengths = columns.map((col, i) => {
     let max = String(col).length;
@@ -27,7 +31,44 @@ function computeColumnWidths(columns, rows, totalWidth) {
     return Math.min(Math.max(max, 4), 28);
   });
   const totalWeight = lengths.reduce((a, b) => a + b, 0);
-  return lengths.map((w) => (w / totalWeight) * totalWidth);
+  const raw = lengths.map((w) => (w / totalWeight) * totalWidth);
+
+  const totalDeficit = raw.reduce((sum, w) => sum + Math.max(0, MIN_COL_WIDTH - w), 0);
+  if (totalDeficit === 0) return raw;
+
+  const surplusPool = raw.reduce((sum, w) => sum + Math.max(0, w - MIN_COL_WIDTH), 0);
+  return raw.map((w) => {
+    if (w < MIN_COL_WIDTH) return MIN_COL_WIDTH;
+    const surplus = w - MIN_COL_WIDTH;
+    const share = surplusPool > 0 ? (surplus / surplusPool) * totalDeficit : 0;
+    return w - share;
+  });
+}
+
+// pdfkit's own width+ellipsis+lineBreak:false combo can still wrap a character onto a
+// second line when the box is only a few points too narrow (observed directly by
+// inspecting generated PDFs). Truncating the string ourselves before calling .text()
+// — with no width/ellipsis option at all — removes any ambiguity: what we hand pdfkit
+// already fits, so there is nothing left for it to wrap.
+function truncateToWidth(doc, text, maxWidth) {
+  if (maxWidth <= 0) return '';
+  if (doc.widthOfString(text) <= maxWidth) return text;
+
+  const ellipsis = '…';
+  if (doc.widthOfString(ellipsis) > maxWidth) return '';
+
+  let lo = 0;
+  let hi = text.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    const candidate = text.slice(0, mid) + ellipsis;
+    if (doc.widthOfString(candidate) <= maxWidth) {
+      lo = mid;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return lo > 0 ? text.slice(0, lo) + ellipsis : ellipsis;
 }
 
 function renderPdf({ title, columns, rows }) {
@@ -54,16 +95,15 @@ function renderPdf({ title, columns, rows }) {
     const rowHeight = 20;
     const cellPadding = 4;
 
+    function drawCell(text, i, y) {
+      const maxWidth = colWidths[i] - cellPadding * 2;
+      doc.text(truncateToWidth(doc, text, maxWidth), colX[i] + cellPadding, y + 6, { lineBreak: false });
+    }
+
     function drawHeader(y) {
       doc.rect(startX, y, usableWidth, rowHeight).fill('#1F3C88');
       doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(8);
-      columns.forEach((col, i) => {
-        doc.text(String(col), colX[i] + cellPadding, y + 6, {
-          width: colWidths[i] - cellPadding * 2,
-          lineBreak: false,
-          ellipsis: true,
-        });
-      });
+      columns.forEach((col, i) => drawCell(String(col), i, y));
       doc.fillColor('#000000');
     }
 
@@ -87,11 +127,7 @@ function renderPdf({ title, columns, rows }) {
       }
 
       row.forEach((cell, i) => {
-        doc.text(cell === null || cell === undefined ? '' : String(cell), colX[i] + cellPadding, y + 6, {
-          width: colWidths[i] - cellPadding * 2,
-          lineBreak: false,
-          ellipsis: true,
-        });
+        drawCell(cell === null || cell === undefined ? '' : String(cell), i, y);
       });
       y += rowHeight;
     });
