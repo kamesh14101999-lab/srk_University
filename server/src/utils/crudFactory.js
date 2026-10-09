@@ -23,7 +23,7 @@ function getSort(req, defaultSort = { createdAt: -1 }) {
 //   searchFields: fields that `search` query param matches against (case-insensitive regex)
 //   filterFields: query params copied straight into the Mongo filter if present
 //   blockDeleteRefs: [{ model, field, label }] - refuse delete with 409 if any doc references this one
-//   buildFilter: (req) => extra filter object, merged in
+//   buildFilter: (req) => extra filter object (or a Promise of one), merged in
 function crudFactory(Model, options = {}) {
   const {
     populate,
@@ -49,7 +49,7 @@ function crudFactory(Model, options = {}) {
     }
 
     if (buildFilter) {
-      Object.assign(filter, buildFilter(req));
+      Object.assign(filter, await buildFilter(req));
     }
 
     let query = Model.find(filter).sort(getSort(req)).skip(skip).limit(limit);

@@ -38,6 +38,7 @@ export default function AdminTeachingAssignments() {
   ];
 
   const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Search teacher, subject, course' },
     { key: 'teacher', type: 'select', placeholder: 'All Teachers', options: teacherOptions },
     { key: 'course', type: 'select', placeholder: 'All Courses', options: courseOptions },
     { key: 'subject', type: 'select', placeholder: 'All Subjects', options: subjectOptions },
