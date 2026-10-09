@@ -27,6 +27,8 @@ export default function CrudManager({
   const [pages, setPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState({});
+  const [sortBy, setSortBy] = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -38,7 +40,8 @@ export default function CrudManager({
   async function load() {
     setLoading(true);
     try {
-      const data = await api.list({ page, limit: 20, ...filters, ...extraParams });
+      const sortParams = sortBy ? { sort: sortBy, order: sortDir } : {};
+      const data = await api.list({ page, limit: 20, ...filters, ...sortParams, ...extraParams });
       setItems(data.items || []);
       setPages(data.pages || 1);
       setTotal(data.total || 0);
@@ -49,10 +52,20 @@ export default function CrudManager({
     }
   }
 
+  function handleSort(key) {
+    if (sortBy === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(key);
+      setSortDir('asc');
+    }
+    setPage(1);
+  }
+
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, JSON.stringify(filters), JSON.stringify(extraParams)]);
+  }, [page, JSON.stringify(filters), JSON.stringify(extraParams), sortBy, sortDir]);
 
   function openCreate() {
     const initial = {};
@@ -174,7 +187,16 @@ export default function CrudManager({
         />
       )}
 
-      <Table columns={tableColumns} rows={items} loading={loading} onRowClick={onRowClick} emptyMessage={`No ${title.toLowerCase()} found`} />
+      <Table
+        columns={tableColumns}
+        rows={items}
+        loading={loading}
+        onRowClick={onRowClick}
+        emptyMessage={`No ${title.toLowerCase()} found`}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSort={handleSort}
+      />
       <Pagination page={page} pages={pages} total={total} onChange={setPage} />
 
       <Modal

@@ -1,7 +1,7 @@
 const { Exam, Mark, TeachingAssignment } = require('../models');
 const asyncHandler = require('../middleware/asyncHandler');
 const ApiError = require('../utils/ApiError');
-const { getPagination } = require('../utils/crudFactory');
+const { getPagination, getSort } = require('../utils/crudFactory');
 
 const populateFields = [
   { path: 'subject', select: 'name code semester' },
@@ -17,6 +17,7 @@ const list = asyncHandler(async (req, res) => {
   if (req.query.semester) filter.semester = req.query.semester;
   if (req.query.academicYear) filter.academicYear = req.query.academicYear;
   if (req.query.upcoming === 'true') filter.date = { $gte: new Date() };
+  if (req.query.search) filter.name = new RegExp(req.query.search, 'i');
 
   if (req.user.role === 'teacher') {
     const assignments = await TeachingAssignment.find({ teacher: req.teacherProfile._id });
@@ -28,7 +29,7 @@ const list = asyncHandler(async (req, res) => {
   }
 
   const [items, total] = await Promise.all([
-    Exam.find(filter).populate(populateFields).sort({ date: -1 }).skip(skip).limit(limit),
+    Exam.find(filter).populate(populateFields).sort(getSort(req, { date: -1 })).skip(skip).limit(limit),
     Exam.countDocuments(filter),
   ]);
   res.json({ items, total, page, pages: Math.max(1, Math.ceil(total / limit)) });

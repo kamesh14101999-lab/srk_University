@@ -45,13 +45,14 @@ export default function SportsPage() {
           api={sportsApi}
           readOnly={readOnly}
           columns={[
-            { key: 'name', header: 'Name' },
+            { key: 'name', header: 'Name', sortable: true },
             { key: 'description', header: 'Description' },
           ]}
           formFields={[
             { name: 'name', label: 'Name', required: true },
             { name: 'description', label: 'Description', type: 'textarea' },
           ]}
+          filterFields={[{ key: 'search', type: 'text', placeholder: 'Search name' }]}
         />
       )}
 
@@ -61,11 +62,11 @@ export default function SportsPage() {
           api={tournamentsApi}
           readOnly={readOnly}
           columns={[
-            { key: 'name', header: 'Name' },
+            { key: 'name', header: 'Name', sortable: true },
             { key: 'sport', header: 'Sport', render: (r) => r.sport?.name },
             { key: 'status', header: 'Status', render: (r) => <Badge variant="primary">{r.status}</Badge> },
-            { key: 'startDate', header: 'Start', render: (r) => formatDate(r.startDate) },
-            { key: 'endDate', header: 'End', render: (r) => formatDate(r.endDate) },
+            { key: 'startDate', header: 'Start', sortable: true, render: (r) => formatDate(r.startDate) },
+            { key: 'endDate', header: 'End', sortable: true, render: (r) => formatDate(r.endDate) },
           ]}
           formFields={[
             { name: 'name', label: 'Name', required: true },
@@ -74,6 +75,11 @@ export default function SportsPage() {
             { name: 'endDate', label: 'End Date', type: 'date' },
             { name: 'venue', label: 'Venue' },
             { name: 'status', label: 'Status', type: 'select', options: ['upcoming', 'ongoing', 'completed'].map((s) => ({ value: s, label: s })) },
+          ]}
+          filterFields={[
+            { key: 'search', type: 'text', placeholder: 'Search name or venue' },
+            { key: 'sport', type: 'select', placeholder: 'All Sports', options: sportOptions },
+            { key: 'status', type: 'select', placeholder: 'All Statuses', options: ['upcoming', 'ongoing', 'completed'].map((s) => ({ value: s, label: s })) },
           ]}
         />
       )}
@@ -84,7 +90,7 @@ export default function SportsPage() {
           api={teamsApi}
           readOnly={readOnly}
           columns={[
-            { key: 'name', header: 'Name' },
+            { key: 'name', header: 'Name', sortable: true },
             { key: 'sport', header: 'Sport', render: (r) => r.sport?.name },
             { key: 'tournament', header: 'Tournament', render: (r) => r.tournament?.name },
             { key: 'captain', header: 'Captain', render: (r) => r.captain?.user?.name || '-' },
@@ -93,6 +99,11 @@ export default function SportsPage() {
             { name: 'name', label: 'Name', required: true },
             { name: 'sport', label: 'Sport', type: 'select', required: true, options: sportOptions },
             { name: 'tournament', label: 'Tournament', type: 'select', required: true, options: tournamentOptions },
+          ]}
+          filterFields={[
+            { key: 'search', type: 'text', placeholder: 'Search name' },
+            { key: 'sport', type: 'select', placeholder: 'All Sports', options: sportOptions },
+            { key: 'tournament', type: 'select', placeholder: 'All Tournaments', options: tournamentOptions },
           ]}
         />
       )}
@@ -106,6 +117,7 @@ export default function SportsPage() {
             { key: 'tournament', header: 'Tournament', render: (r) => r.tournament?.name },
             { key: 'teamA', header: 'Team A', render: (r) => r.teamA?.name },
             { key: 'teamB', header: 'Team B', render: (r) => r.teamB?.name },
+            { key: 'date', header: 'Date', sortable: true, render: (r) => formatDate(r.date) },
             { key: 'score', header: 'Score', render: (r) => `${r.scoreA ?? 0} - ${r.scoreB ?? 0}` },
             { key: 'status', header: 'Status', render: (r) => <Badge>{r.status}</Badge> },
           ]}
@@ -118,6 +130,10 @@ export default function SportsPage() {
             { name: 'scoreA', label: 'Score A', type: 'number' },
             { name: 'scoreB', label: 'Score B', type: 'number' },
             { name: 'status', label: 'Status', type: 'select', options: ['scheduled', 'ongoing', 'completed', 'cancelled'].map((s) => ({ value: s, label: s })) },
+          ]}
+          filterFields={[
+            { key: 'tournament', type: 'select', placeholder: 'All Tournaments', options: tournamentOptions },
+            { key: 'status', type: 'select', placeholder: 'All Statuses', options: ['scheduled', 'ongoing', 'completed', 'cancelled'].map((s) => ({ value: s, label: s })) },
           ]}
         />
       )}

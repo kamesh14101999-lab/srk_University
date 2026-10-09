@@ -16,9 +16,9 @@ export default function EventsPage() {
   const [reloadKey, setReloadKey] = useState(0);
 
   const columns = [
-    { key: 'name', header: 'Name' },
+    { key: 'name', header: 'Name', sortable: true },
     { key: 'type', header: 'Type', render: (r) => <span className="capitalize">{r.type?.replace('_', ' ')}</span> },
-    { key: 'date', header: 'Date', render: (r) => formatDate(r.date) },
+    { key: 'date', header: 'Date', sortable: true, render: (r) => formatDate(r.date) },
     { key: 'venue', header: 'Venue' },
     { key: 'status', header: 'Status', render: (r) => <Badge variant={r.status === 'upcoming' ? 'primary' : 'default'}>{r.status}</Badge> },
     {
@@ -70,6 +70,12 @@ export default function EventsPage() {
     { name: 'description', label: 'Description', type: 'textarea' },
   ];
 
+  const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Search name, venue, organizer' },
+    { key: 'type', type: 'select', placeholder: 'All Types', options: TYPES.map((t) => ({ value: t, label: t.replace('_', ' ') })) },
+    { key: 'status', type: 'select', placeholder: 'All Statuses', options: STATUSES.map((s) => ({ value: s, label: s })) },
+  ];
+
   return (
     <CrudManager
       key={reloadKey}
@@ -77,6 +83,7 @@ export default function EventsPage() {
       api={eventsApi}
       columns={columns}
       formFields={formFields}
+      filterFields={filterFields}
       readOnly={user?.role !== 'admin'}
     />
   );

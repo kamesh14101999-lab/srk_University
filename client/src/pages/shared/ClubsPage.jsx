@@ -45,7 +45,7 @@ export default function ClubsPage() {
   }
 
   const columns = [
-    { key: 'name', header: 'Name' },
+    { key: 'name', header: 'Name', sortable: true },
     { key: 'facultyCoordinator', header: 'Faculty Coordinator', render: (r) => r.facultyCoordinator?.user?.name || '-' },
     { key: 'studentCoordinator', header: 'Student Coordinator', render: (r) => r.studentCoordinator?.user?.name || '-' },
     {
@@ -66,7 +66,14 @@ export default function ClubsPage() {
 
   return (
     <>
-      <CrudManager title="Club" api={clubsApi} columns={columns} formFields={formFields} readOnly={readOnly} />
+      <CrudManager
+        title="Club"
+        api={clubsApi}
+        columns={columns}
+        formFields={formFields}
+        filterFields={[{ key: 'search', type: 'text', placeholder: 'Search name' }]}
+        readOnly={readOnly}
+      />
 
       <Modal open={!!membersClub} onClose={() => setMembersClub(null)} title={`${membersClub?.name} Members`}>
         <div className="space-y-3">

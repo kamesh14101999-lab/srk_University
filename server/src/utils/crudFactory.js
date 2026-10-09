@@ -10,6 +10,13 @@ function getPagination(req) {
   return { page, limit, skip: (page - 1) * limit };
 }
 
+// Builds a Mongoose sort object from `?sort=field&order=asc|desc`, falling back to defaultSort.
+function getSort(req, defaultSort = { createdAt: -1 }) {
+  const { sort, order } = req.query;
+  if (!sort) return defaultSort;
+  return { [sort]: order === 'desc' ? -1 : 1 };
+}
+
 // Builds standard list/get/create/update/delete handlers for a Mongoose model.
 // options:
 //   populate: string | array of fields to populate
@@ -45,7 +52,7 @@ function crudFactory(Model, options = {}) {
       Object.assign(filter, buildFilter(req));
     }
 
-    let query = Model.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    let query = Model.find(filter).sort(getSort(req)).skip(skip).limit(limit);
     if (populate) query = query.populate(populate);
 
     const [items, total] = await Promise.all([query, Model.countDocuments(filter)]);
@@ -94,4 +101,4 @@ function crudFactory(Model, options = {}) {
   return { list, getOne, create, update, remove };
 }
 
-module.exports = { crudFactory, getPagination };
+module.exports = { crudFactory, getPagination, getSort };

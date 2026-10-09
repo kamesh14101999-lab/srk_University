@@ -20,12 +20,12 @@ export default function AdminStudents() {
   }, []);
 
   const columns = [
-    { key: 'studentId', header: 'Student ID' },
+    { key: 'studentId', header: 'Student ID', sortable: true },
     { key: 'name', header: 'Name', render: (r) => r.user?.name },
     { key: 'department', header: 'Department', render: (r) => r.department?.name },
     { key: 'course', header: 'Course', render: (r) => r.course?.name },
-    { key: 'semester', header: 'Sem' },
-    { key: 'section', header: 'Sec' },
+    { key: 'semester', header: 'Sem', sortable: true },
+    { key: 'section', header: 'Sec', sortable: true },
     { key: 'status', header: 'Status', render: (r) => <Badge variant={r.academicStatus === 'active' ? 'green' : 'default'}>{r.academicStatus}</Badge> },
   ];
 

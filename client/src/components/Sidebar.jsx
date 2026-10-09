@@ -1,8 +1,39 @@
-import { NavLink } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { NAV } from '../routes/navConfig';
 
+function linkClass({ isActive }) {
+  return `block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+    isActive ? 'bg-primary-600 text-white' : 'text-white/70 hover:bg-primary-700 hover:text-white'
+  }`;
+}
+
 export default function Sidebar({ role, open, onClose }) {
-  const items = NAV[role] || [];
+  const entries = NAV[role] || [];
+  const location = useLocation();
+
+  const initialOpenSections = useMemo(() => {
+    const active = new Set();
+    for (const entry of entries) {
+      if (entry.section && entry.items.some((item) => location.pathname.startsWith(item.path))) {
+        active.add(entry.section);
+      }
+    }
+    return active;
+    // Only computed once on mount, per role — collapsing/expanding afterwards is left to the user.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role]);
+
+  const [openSections, setOpenSections] = useState(initialOpenSections);
+
+  function toggleSection(section) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(section)) next.delete(section);
+      else next.add(section);
+      return next;
+    });
+  }
 
   return (
     <>
@@ -17,21 +48,44 @@ export default function Sidebar({ role, open, onClose }) {
           <span className="text-sm text-white/80">University</span>
         </div>
         <nav className="flex flex-col gap-0.5 p-3">
-          {items.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === `/${role}`}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive ? 'bg-primary-600 text-white' : 'text-white/70 hover:bg-primary-700 hover:text-white'
-                }`
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {entries.map((entry) => {
+            if (!entry.section) {
+              return (
+                <NavLink
+                  key={entry.path}
+                  to={entry.path}
+                  end={entry.path === `/${role}`}
+                  onClick={onClose}
+                  className={linkClass}
+                >
+                  {entry.label}
+                </NavLink>
+              );
+            }
+
+            const isOpen = openSections.has(entry.section);
+            return (
+              <div key={entry.section} className="mt-1 first:mt-0">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(entry.section)}
+                  className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white/50 hover:text-white/80"
+                >
+                  {entry.section}
+                  <span className={`transition-transform ${isOpen ? 'rotate-90' : ''}`}>›</span>
+                </button>
+                {isOpen && (
+                  <div className="flex flex-col gap-0.5 pl-2">
+                    {entry.items.map((item) => (
+                      <NavLink key={item.path} to={item.path} onClick={onClose} className={linkClass}>
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
       </aside>
     </>

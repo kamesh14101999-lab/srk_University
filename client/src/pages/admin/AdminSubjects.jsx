@@ -13,11 +13,11 @@ export default function AdminSubjects() {
   }, []);
 
   const columns = [
-    { key: 'name', header: 'Name' },
-    { key: 'code', header: 'Code' },
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'code', header: 'Code', sortable: true },
     { key: 'course', header: 'Course', render: (r) => r.course?.name },
-    { key: 'semester', header: 'Semester' },
-    { key: 'credits', header: 'Credits' },
+    { key: 'semester', header: 'Semester', sortable: true },
+    { key: 'credits', header: 'Credits', sortable: true },
     { key: 'type', header: 'Type' },
   ];
 
@@ -36,7 +36,11 @@ export default function AdminSubjects() {
       api={subjectsApi}
       columns={columns}
       formFields={formFields}
-      filterFields={[{ key: 'course', type: 'select', placeholder: 'All Courses', options: courseOptions }]}
+      filterFields={[
+        { key: 'search', type: 'text', placeholder: 'Search name or code' },
+        { key: 'course', type: 'select', placeholder: 'All Courses', options: courseOptions },
+        { key: 'type', type: 'select', placeholder: 'All Types', options: TYPES.map((t) => ({ value: t, label: t })) },
+      ]}
     />
   );
 }

@@ -7,9 +7,9 @@ export default function FestsPage() {
   const { user } = useAuth();
 
   const columns = [
-    { key: 'name', header: 'Name' },
-    { key: 'year', header: 'Year' },
-    { key: 'startDate', header: 'Start', render: (r) => formatDate(r.startDate) },
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'year', header: 'Year', sortable: true },
+    { key: 'startDate', header: 'Start', sortable: true, render: (r) => formatDate(r.startDate) },
     { key: 'endDate', header: 'End', render: (r) => formatDate(r.endDate) },
     { key: 'venue', header: 'Venue' },
     { key: 'programs', header: 'Programs', render: (r) => r.programs?.length ?? 0 },
@@ -25,5 +25,16 @@ export default function FestsPage() {
     { name: 'description', label: 'Description', type: 'textarea' },
   ];
 
-  return <CrudManager title="Fest" api={festsApi} columns={columns} formFields={formFields} readOnly={user?.role !== 'admin'} />;
+  const filterFields = [{ key: 'search', type: 'text', placeholder: 'Search name or venue' }];
+
+  return (
+    <CrudManager
+      title="Fest"
+      api={festsApi}
+      columns={columns}
+      formFields={formFields}
+      filterFields={filterFields}
+      readOnly={user?.role !== 'admin'}
+    />
+  );
 }

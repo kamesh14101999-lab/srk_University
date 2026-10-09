@@ -4,9 +4,9 @@ import Badge from '../../components/Badge';
 
 export default function AdminAcademicYears() {
   const columns = [
-    { key: 'label', header: 'Label' },
-    { key: 'startDate', header: 'Start', render: (r) => (r.startDate ? new Date(r.startDate).toLocaleDateString() : '-') },
-    { key: 'endDate', header: 'End', render: (r) => (r.endDate ? new Date(r.endDate).toLocaleDateString() : '-') },
+    { key: 'label', header: 'Label', sortable: true },
+    { key: 'startDate', header: 'Start', sortable: true, render: (r) => (r.startDate ? new Date(r.startDate).toLocaleDateString() : '-') },
+    { key: 'endDate', header: 'End', sortable: true, render: (r) => (r.endDate ? new Date(r.endDate).toLocaleDateString() : '-') },
     { key: 'isCurrent', header: 'Current', render: (r) => (r.isCurrent ? <Badge variant="green">Current</Badge> : null) },
   ];
 
@@ -17,5 +17,26 @@ export default function AdminAcademicYears() {
     { name: 'isCurrent', label: 'Set as current academic year', type: 'checkbox' },
   ];
 
-  return <CrudManager title="Academic Year" api={academicYearsApi} columns={columns} formFields={formFields} />;
+  const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Search label' },
+    {
+      key: 'isCurrent',
+      type: 'select',
+      placeholder: 'All Years',
+      options: [
+        { value: 'true', label: 'Current only' },
+        { value: 'false', label: 'Non-current' },
+      ],
+    },
+  ];
+
+  return (
+    <CrudManager
+      title="Academic Year"
+      api={academicYearsApi}
+      columns={columns}
+      formFields={formFields}
+      filterFields={filterFields}
+    />
+  );
 }

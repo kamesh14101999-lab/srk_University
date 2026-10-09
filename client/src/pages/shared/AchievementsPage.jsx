@@ -10,9 +10,9 @@ export default function AchievementsPage() {
 
   const columns = [
     { key: 'student', header: 'Student', render: (r) => r.student?.user?.name || '-' },
-    { key: 'title', header: 'Title' },
+    { key: 'title', header: 'Title', sortable: true },
     { key: 'category', header: 'Category', render: (r) => <span className="capitalize">{r.category}</span> },
-    { key: 'date', header: 'Date', render: (r) => formatDate(r.date) },
+    { key: 'date', header: 'Date', sortable: true, render: (r) => formatDate(r.date) },
   ];
 
   const formFields = [
@@ -22,5 +22,19 @@ export default function AchievementsPage() {
     { name: 'date', label: 'Date', type: 'date' },
   ];
 
-  return <CrudManager title="Achievement" api={achievementsApi} columns={columns} formFields={formFields} readOnly={user?.role !== 'admin'} />;
+  const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Search title' },
+    { key: 'category', type: 'select', placeholder: 'All Categories', options: CATEGORIES.map((c) => ({ value: c, label: c })) },
+  ];
+
+  return (
+    <CrudManager
+      title="Achievement"
+      api={achievementsApi}
+      columns={columns}
+      formFields={formFields}
+      filterFields={filterFields}
+      readOnly={user?.role !== 'admin'}
+    />
+  );
 }

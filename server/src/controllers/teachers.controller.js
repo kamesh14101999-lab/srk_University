@@ -1,7 +1,7 @@
 const { Teacher, User, TeachingAssignment, TimetableEntry } = require('../models');
 const asyncHandler = require('../middleware/asyncHandler');
 const ApiError = require('../utils/ApiError');
-const { getPagination } = require('../utils/crudFactory');
+const { getPagination, getSort } = require('../utils/crudFactory');
 const generateTempPassword = require('../utils/generatePassword');
 
 const populateFields = [
@@ -23,7 +23,7 @@ const list = asyncHandler(async (req, res) => {
   }
 
   const [items, total] = await Promise.all([
-    Teacher.find(filter).populate(populateFields).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Teacher.find(filter).populate(populateFields).sort(getSort(req)).skip(skip).limit(limit),
     Teacher.countDocuments(filter),
   ]);
   res.json({ items, total, page, pages: Math.max(1, Math.ceil(total / limit)) });

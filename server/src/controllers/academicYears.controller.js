@@ -2,6 +2,8 @@ const { AcademicYear, Exam, Result, TeachingAssignment } = require('../models');
 const { crudFactory } = require('../utils/crudFactory');
 
 const base = crudFactory(AcademicYear, {
+  searchFields: ['label'],
+  filterFields: ['isCurrent'],
   blockDeleteRefs: [
     { model: Exam, field: 'academicYear', label: 'exam' },
     { model: Result, field: 'academicYear', label: 'result' },

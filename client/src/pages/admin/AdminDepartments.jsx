@@ -3,8 +3,8 @@ import CrudManager from '../../components/CrudManager';
 
 export default function AdminDepartments() {
   const columns = [
-    { key: 'name', header: 'Name' },
-    { key: 'code', header: 'Code' },
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'code', header: 'Code', sortable: true },
     { key: 'email', header: 'Email' },
     { key: 'phone', header: 'Phone' },
   ];
@@ -17,5 +17,15 @@ export default function AdminDepartments() {
     { name: 'phone', label: 'Phone' },
   ];
 
-  return <CrudManager title="Department" api={departmentsApi} columns={columns} formFields={formFields} />;
+  const filterFields = [{ key: 'search', type: 'text', placeholder: 'Search name or code' }];
+
+  return (
+    <CrudManager
+      title="Department"
+      api={departmentsApi}
+      columns={columns}
+      formFields={formFields}
+      filterFields={filterFields}
+    />
+  );
 }

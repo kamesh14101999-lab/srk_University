@@ -23,8 +23,8 @@ export default function AdminTeachingAssignments() {
     { key: 'teacher', header: 'Teacher', render: (r) => r.teacher?.user?.name },
     { key: 'subject', header: 'Subject', render: (r) => r.subject?.name },
     { key: 'course', header: 'Course', render: (r) => r.course?.name },
-    { key: 'semester', header: 'Semester' },
-    { key: 'section', header: 'Section' },
+    { key: 'semester', header: 'Semester', sortable: true },
+    { key: 'section', header: 'Section', sortable: true },
     { key: 'academicYear', header: 'Year', render: (r) => r.academicYear?.label },
   ];
 
@@ -37,5 +37,20 @@ export default function AdminTeachingAssignments() {
     { name: 'academicYear', label: 'Academic Year', type: 'select', required: true, options: yearOptions },
   ];
 
-  return <CrudManager title="Teaching Assignment" api={teachingAssignmentsApi} columns={columns} formFields={formFields} />;
+  const filterFields = [
+    { key: 'teacher', type: 'select', placeholder: 'All Teachers', options: teacherOptions },
+    { key: 'course', type: 'select', placeholder: 'All Courses', options: courseOptions },
+    { key: 'subject', type: 'select', placeholder: 'All Subjects', options: subjectOptions },
+    { key: 'academicYear', type: 'select', placeholder: 'All Years', options: yearOptions },
+  ];
+
+  return (
+    <CrudManager
+      title="Teaching Assignment"
+      api={teachingAssignmentsApi}
+      columns={columns}
+      formFields={formFields}
+      filterFields={filterFields}
+    />
+  );
 }

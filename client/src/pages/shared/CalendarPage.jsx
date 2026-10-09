@@ -9,10 +9,10 @@ export default function CalendarPage() {
   const { user } = useAuth();
 
   const columns = [
-    { key: 'title', header: 'Title' },
+    { key: 'title', header: 'Title', sortable: true },
     { key: 'type', header: 'Type', render: (r) => <span className="capitalize">{r.type.replace('_', ' ')}</span> },
-    { key: 'startDate', header: 'Start', render: (r) => formatDate(r.startDate) },
-    { key: 'endDate', header: 'End', render: (r) => formatDate(r.endDate) },
+    { key: 'startDate', header: 'Start', sortable: true, render: (r) => formatDate(r.startDate) },
+    { key: 'endDate', header: 'End', sortable: true, render: (r) => formatDate(r.endDate) },
   ];
 
   const formFields = [
@@ -23,5 +23,19 @@ export default function CalendarPage() {
     { name: 'description', label: 'Description', type: 'textarea' },
   ];
 
-  return <CrudManager title="Calendar Entry" api={calendarApi} columns={columns} formFields={formFields} readOnly={user?.role !== 'admin'} />;
+  const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Search title' },
+    { key: 'type', type: 'select', placeholder: 'All Types', options: TYPES.map((t) => ({ value: t, label: t.replace('_', ' ') })) },
+  ];
+
+  return (
+    <CrudManager
+      title="Calendar Entry"
+      api={calendarApi}
+      columns={columns}
+      formFields={formFields}
+      filterFields={filterFields}
+      readOnly={user?.role !== 'admin'}
+    />
+  );
 }

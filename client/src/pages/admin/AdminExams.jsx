@@ -40,13 +40,13 @@ export default function AdminExams() {
   }
 
   const columns = [
-    { key: 'name', header: 'Name' },
+    { key: 'name', header: 'Name', sortable: true },
     { key: 'type', header: 'Type' },
     { key: 'subject', header: 'Subject', render: (r) => r.subject?.name },
     { key: 'course', header: 'Course', render: (r) => r.course?.name },
-    { key: 'semester', header: 'Sem' },
-    { key: 'date', header: 'Date', render: (r) => formatDate(r.date) },
-    { key: 'maxMarks', header: 'Max Marks' },
+    { key: 'semester', header: 'Sem', sortable: true },
+    { key: 'date', header: 'Date', sortable: true, render: (r) => formatDate(r.date) },
+    { key: 'maxMarks', header: 'Max Marks', sortable: true },
     {
       key: 'isPublished',
       header: 'Status',
@@ -83,6 +83,7 @@ export default function AdminExams() {
       columns={columns}
       formFields={formFields}
       filterFields={[
+        { key: 'search', type: 'text', placeholder: 'Search exam name' },
         { key: 'type', type: 'select', placeholder: 'All Types', options: TYPES.map((t) => ({ value: t, label: t })) },
         { key: 'course', type: 'select', placeholder: 'All Courses', options: courseOptions },
       ]}

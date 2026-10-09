@@ -7,10 +7,10 @@ export default function ClustersPage() {
   const { user } = useAuth();
 
   const columns = [
-    { key: 'clusterName', header: 'Cluster' },
-    { key: 'activityName', header: 'Activity' },
+    { key: 'clusterName', header: 'Cluster', sortable: true },
+    { key: 'activityName', header: 'Activity', sortable: true },
     { key: 'activityType', header: 'Type' },
-    { key: 'date', header: 'Date', render: (r) => formatDate(r.date) },
+    { key: 'date', header: 'Date', sortable: true, render: (r) => formatDate(r.date) },
     { key: 'venue', header: 'Venue' },
     { key: 'participants', header: 'Participants', render: (r) => r.participants?.length ?? 0 },
   ];
@@ -25,7 +25,16 @@ export default function ClustersPage() {
     { name: 'results', label: 'Results', type: 'textarea' },
   ];
 
+  const filterFields = [{ key: 'search', type: 'text', placeholder: 'Search cluster or activity name' }];
+
   return (
-    <CrudManager title="Cluster Activity" api={clustersApi} columns={columns} formFields={formFields} readOnly={user?.role !== 'admin'} />
+    <CrudManager
+      title="Cluster Activity"
+      api={clustersApi}
+      columns={columns}
+      formFields={formFields}
+      filterFields={filterFields}
+      readOnly={user?.role !== 'admin'}
+    />
   );
 }

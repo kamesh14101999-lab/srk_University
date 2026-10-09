@@ -13,8 +13,8 @@ export default function AdminCourses() {
   }, []);
 
   const columns = [
-    { key: 'name', header: 'Name' },
-    { key: 'code', header: 'Code' },
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'code', header: 'Code', sortable: true },
     { key: 'department', header: 'Department', render: (r) => r.department?.name },
     { key: 'degreeType', header: 'Type' },
     { key: 'durationYears', header: 'Duration (yrs)' },
@@ -32,5 +32,19 @@ export default function AdminCourses() {
     { name: 'description', label: 'Description', type: 'textarea' },
   ];
 
-  return <CrudManager title="Course" api={coursesApi} columns={columns} formFields={formFields} />;
+  const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Search name or code' },
+    { key: 'department', type: 'select', placeholder: 'All Departments', options: departmentOptions },
+    { key: 'degreeType', type: 'select', placeholder: 'All Types', options: DEGREE_TYPES.map((d) => ({ value: d, label: d })) },
+  ];
+
+  return (
+    <CrudManager
+      title="Course"
+      api={coursesApi}
+      columns={columns}
+      formFields={formFields}
+      filterFields={filterFields}
+    />
+  );
 }

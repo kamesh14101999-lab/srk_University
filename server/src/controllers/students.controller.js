@@ -14,7 +14,7 @@ const {
 } = require('../models');
 const asyncHandler = require('../middleware/asyncHandler');
 const ApiError = require('../utils/ApiError');
-const { getPagination } = require('../utils/crudFactory');
+const { getPagination, getSort } = require('../utils/crudFactory');
 const { teacherCanAccessStudent } = require('../services/scope');
 const { computePercent } = require('../services/attendanceStats');
 const generateTempPassword = require('../utils/generatePassword');
@@ -83,7 +83,7 @@ const list = asyncHandler(async (req, res) => {
   if (andClauses.length > 0) filter.$and = andClauses;
 
   const [items, total] = await Promise.all([
-    Student.find(filter).populate(populateFields).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Student.find(filter).populate(populateFields).sort(getSort(req)).skip(skip).limit(limit),
     Student.countDocuments(filter),
   ]);
   res.json({ items, total, page, pages: Math.max(1, Math.ceil(total / limit)) });

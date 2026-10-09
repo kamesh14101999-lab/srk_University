@@ -17,7 +17,7 @@ export default function AdminTeachers() {
   }, []);
 
   const columns = [
-    { key: 'employeeId', header: 'Employee ID' },
+    { key: 'employeeId', header: 'Employee ID', sortable: true },
     { key: 'name', header: 'Name', render: (r) => r.user?.name },
     { key: 'department', header: 'Department', render: (r) => r.department?.name },
     { key: 'designation', header: 'Designation' },
